@@ -1,13 +1,20 @@
+import "react-datepicker/dist/react-datepicker.css";
+
+import { useFormik } from "formik";
 import { matchSorter } from "match-sorter";
-import { useEffect, useMemo, useState } from "react";
+import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Column,
   useFilters,
   useGlobalFilter,
   usePagination,
+  useRowSelect,
   useSortBy,
   useTable,
 } from "react-table";
+import * as Yup from "yup";
+import { ptForm } from "yup-locale-pt";
 
 import { TriangleDownIcon, TriangleUpIcon } from "@chakra-ui/icons";
 import {
@@ -15,9 +22,19 @@ import {
   Button,
   chakra,
   Flex,
+  FormControl,
+  FormErrorMessage,
+  FormLabel,
   Heading,
   Input,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalHeader,
+  ModalOverlay,
   Select,
+  Stack,
   Table,
   Tbody,
   Td,
@@ -25,12 +42,20 @@ import {
   Th,
   Thead,
   Tr,
+  useDisclosure,
 } from "@chakra-ui/react";
-
-import { Issue, User } from "../../@types";
-import { useLocalStorage } from "../../hooks/useLocalStorage";
-import { api } from "../../utils/api";
+import "react-datepicker/dist/react-datepicker.css";
+import { useAuth } from "../../hooks/useAuth";
+import ActiveButton from "./components/ActiveButton";
+import { DatePickerShow } from "./components/Datepicker";
 import { DefaultColumnFilter } from "./components/DefaultColumnFilter";
+
+Yup.setLocale(ptForm);
+export enum Priority {
+  BAIXA = "BAIXA",
+  ALTA = "ALTA",
+  NORMAL = "NORMAL",
+}
 
 function fuzzyTextFilterFn(rows: any[], id: any, filterValue: any) {
   return matchSorter(rows, filterValue, { keys: [(row) => row.values[id]] });
@@ -40,8 +65,38 @@ function fuzzyTextFilterFn(rows: any[], id: any, filterValue: any) {
 fuzzyTextFilterFn.autoRemove = (val: any) => !val;
 
 export const Issues = () => {
-  const [payload] = useLocalStorage("userJWT", {} as User);
-  const [issues, setIssues] = useState<Issue[]>([]);
+  const navigate = useNavigate();
+
+  const { signed, logout, payload, issues, createIssue } = useAuth();
+  const { isOpen, onOpen, onClose } = useDisclosure();
+
+  const formSchema = Yup.object().shape({
+    issue: Yup.string().required().min(2),
+    version: Yup.string().required().min(2),
+    description: Yup.string().required().min(2).max(200),
+  });
+
+  const { handleSubmit, values, handleChange, touched, errors } = useFormik({
+    initialValues: {
+      issue: "",
+      version: "",
+      description: "",
+      priority: Priority.NORMAL,
+      autor: payload.username,
+    },
+    validationSchema: formSchema,
+    onSubmit: async (values) => {
+      console.log(values);
+      await createIssue(values);
+      onClose();
+    },
+  });
+
+  useEffect(() => {
+    if (!signed) {
+      navigate("/");
+    }
+  }, [signed]);
 
   const columns = useMemo<Column[]>(
     () => [
@@ -50,14 +105,8 @@ export const Issues = () => {
       { Header: "Versão", accessor: "version" },
       { Header: "Autor do Registro ", accessor: "autor" },
       { Header: "Descrição", accessor: "description" },
-      {
-        Header: "Prioridade",
-        accessor: "priority",
-        Cell: (props) => {
-          return <Badge colorScheme="green">{props.value}</Badge>;
-        },
-      },
-      { Header: "Data", accessor: "createdAt" },
+      { Header: "Prioridade", accessor: "priority" },
+      { Header: "Data", accessor: "createdAt", Filter: DatePickerShow },
       { Header: "Status", accessor: "status" },
     ],
     []
@@ -114,35 +163,20 @@ export const Issues = () => {
     useFilters,
     useGlobalFilter,
     useSortBy,
-    usePagination
+    usePagination,
+    useRowSelect
   );
-
-  useEffect(() => {
-    api
-      .get<Issue[]>("issues", { headers: { "x-access-token": payload.token } })
-      .then((response) => {
-        const data = [...response.data];
-        data.forEach((res) => {
-          res.createdAt = new Date(res.createdAt).toLocaleString();
-        });
-        setIssues(data);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-  }, []);
 
   return (
     <Flex height="100vh" justifyContent="center" background="gray.500">
-      <Flex
-        direction="column"
-        background="gray.100"
-        p={12}
-        rounded={6}
-        w="100%"
-      >
-        <Heading mb={6}>Issue Tracking System</Heading>
-        <Table {...getTableProps()}>
+      <Flex direction="column" p={12} rounded={6}>
+        <Flex justifyContent="space-between">
+          <Heading mb={6} color="white">
+            Issue Tracking System
+          </Heading>
+          <ActiveButton createIssue={onOpen} logout={logout} />
+        </Flex>
+        <Table background="gray.100" {...getTableProps()}>
           <Thead>
             {headerGroups.map((headerGroup) => (
               <Tr {...headerGroup.getHeaderGroupProps()} key={headerGroup.id}>
@@ -186,7 +220,11 @@ export const Issues = () => {
             })}
           </Tbody>
         </Table>
-        <Flex justifyContent="space-around" alignItems="center">
+        <Flex
+          background="gray.100"
+          justifyContent="space-around"
+          alignItems="center"
+        >
           <Flex>
             <Button onClick={() => gotoPage(0)} disabled={!canPreviousPage}>
               {"<<"}
@@ -241,6 +279,119 @@ export const Issues = () => {
           </Flex>
         </Flex>
       </Flex>
+      <Modal isOpen={isOpen} onClose={onClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Criar Issue</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <form noValidate onSubmit={handleSubmit}>
+              <Stack spacing={5}>
+                <FormControl
+                  isRequired
+                  isInvalid={touched.issue && Boolean(errors.issue)}
+                >
+                  <FormLabel
+                    htmlFor="issue"
+                    ms="4px"
+                    fontSize="sm"
+                    fontWeight="normal"
+                  >
+                    Titulo
+                  </FormLabel>
+                  <Input
+                    id="issue"
+                    variant="filled"
+                    type="text"
+                    value={values.issue}
+                    onChange={handleChange}
+                  />
+                  <FormErrorMessage ms="4px">
+                    {touched.issue && errors.issue}
+                  </FormErrorMessage>
+                </FormControl>
+                <FormControl
+                  isRequired
+                  isInvalid={touched.version && Boolean(errors.version)}
+                >
+                  <FormLabel
+                    htmlFor="version"
+                    ms="4px"
+                    fontSize="sm"
+                    fontWeight="normal"
+                  >
+                    Versão
+                  </FormLabel>
+                  <Input
+                    id="version"
+                    variant="filled"
+                    type="text"
+                    value={values.version}
+                    onChange={handleChange}
+                  />
+                  <FormErrorMessage ms="4px">
+                    {touched.version && errors.version}
+                  </FormErrorMessage>
+                </FormControl>
+                <FormControl
+                  isRequired
+                  isInvalid={touched.description && Boolean(errors.description)}
+                >
+                  <FormLabel
+                    htmlFor="description"
+                    ms="4px"
+                    fontSize="sm"
+                    fontWeight="normal"
+                  >
+                    Descrição
+                  </FormLabel>
+                  <Input
+                    id="description"
+                    placeholder="Descrição"
+                    variant="filled"
+                    type="text"
+                    value={values.description}
+                    onChange={handleChange}
+                  />
+                  <FormErrorMessage ms="4px">
+                    {touched.description && errors.description}
+                  </FormErrorMessage>
+                </FormControl>
+                <FormControl
+                  isRequired
+                  isInvalid={touched.priority && Boolean(errors.priority)}
+                >
+                  <FormLabel
+                    htmlFor="priority"
+                    ms="4px"
+                    fontSize="sm"
+                    fontWeight="normal"
+                  >
+                    Prioridade
+                  </FormLabel>
+                  <Select
+                    value={values.priority}
+                    onChange={handleChange}
+                    id="priority"
+                  >
+                    {Object.keys(Priority).map((value) => (
+                      <option value={value} key={value}>
+                        {value}
+                      </option>
+                    ))}
+                  </Select>
+                  <FormErrorMessage ms="4px">
+                    {touched.priority && errors.priority}
+                  </FormErrorMessage>
+                </FormControl>
+                <Button type="submit" colorScheme="teal">
+                  Salvar
+                </Button>
+              </Stack>
+            </form>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
     </Flex>
   );
 };

@@ -16,41 +16,29 @@ import {
 import { User } from "../../@types";
 import { useLocalStorage } from "../../hooks/useLocalStorage";
 import { api } from "../../utils/api";
+import { useAuth } from "../../hooks/useAuth";
 
 export const Login = () => {
-  const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const toast = useToast();
-  const [_payload, setPayload] = useLocalStorage("userJWT", {} as User);
+  const { login } = useAuth();
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     setLoading(true);
-    api
-      .post<User>("/auth/log-in", { username, password })
-      .then((response) => {
-        setPayload(response.data);
-        setLoading(false);
-        toast({
-          title: "Login efetuado com sucesso.",
-          description: "Redirecionando",
-          status: "success",
-          duration: 5000,
-          isClosable: true,
-        });
-        navigate("/issues");
-      })
-      .catch((error) => {
-        setLoading(false);
-        toast({
-          title: "Erro",
-          description: error.response.data.message,
-          status: "error",
-          duration: 5000,
-          isClosable: true,
-        });
+    try {
+      await login(username, password);
+    } catch (error: any) {
+      setLoading(false);
+      toast({
+        title: "Erro",
+        description: error.response.data.message,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
       });
+    }
   };
 
   const handleUsername = (value: string) => {
