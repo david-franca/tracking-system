@@ -16,7 +16,11 @@ import {
 import * as Yup from "yup";
 import { ptForm } from "yup-locale-pt";
 
-import { TriangleDownIcon, TriangleUpIcon } from "@chakra-ui/icons";
+import {
+  ChevronDownIcon,
+  TriangleDownIcon,
+  TriangleUpIcon,
+} from "@chakra-ui/icons";
 import {
   Badge,
   Button,
@@ -27,6 +31,10 @@ import {
   FormLabel,
   Heading,
   Input,
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuList,
   Modal,
   ModalBody,
   ModalCloseButton,
