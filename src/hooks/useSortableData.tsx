@@ -8,7 +8,7 @@ interface Config {
 
 export const useSortableData = (
   items: Issue[],
-  config: Config | null = null
+  config: Config | null = null,
 ) => {
   const [sortConfig, setSortConfig] = useState(config);
 

@@ -1,15 +1,12 @@
-import { CloseIcon } from "@chakra-ui/icons";
+import { HamburgerIcon } from "@chakra-ui/icons";
 import {
-  Button,
-  Flex,
+  IconButton,
   Menu,
   MenuButton,
   MenuItem,
   MenuList,
   Portal,
-  Text,
 } from "@chakra-ui/react";
-import { IoClose } from "react-icons/io5";
 
 interface ActiveButtonProps {
   logout: () => void;
@@ -19,11 +16,17 @@ interface ActiveButtonProps {
 const ActiveButton = ({ logout, createIssue }: ActiveButtonProps) => {
   return (
     <Menu>
-      <MenuButton as={Button}>Ações</MenuButton>
+      <MenuButton
+        as={IconButton}
+        aria-label="Options"
+        icon={<HamburgerIcon />}
+      />
       <Portal>
         <MenuList>
           <MenuItem onClick={createIssue}>Criar Issue</MenuItem>
-          <MenuItem onClick={logout}>Sair</MenuItem>
+          <MenuItem color="red" onClick={logout}>
+            Sair
+          </MenuItem>
         </MenuList>
       </Portal>
     </Menu>

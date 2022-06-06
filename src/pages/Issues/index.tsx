@@ -47,6 +47,8 @@ import ActionsButtons from "./components/ActionsButtons";
 import ActiveButton from "./components/ActiveButton";
 import BadgesColored from "./components/BadgesColored";
 import TableHead from "./components/TableHead";
+import { TextFilter } from "./components/TextFilter";
+import DateFilter from "./components/DateFilter";
 
 moment.locale("pt-br");
 Yup.setLocale(ptForm);
@@ -59,6 +61,8 @@ export const Issues = () => {
   const [indexPage, setIndexPage] = useState(0);
   const [idsChecked, setIdsChecked] = useState<number[]>([]);
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const [filterValue, setFilterValue] = useState("");
+  const [filterKey, setFilterKey] = useState("");
 
   const navigate = useNavigate();
 
@@ -68,6 +72,14 @@ export const Issues = () => {
   );
 
   const { items, requestSort, sortConfig } = useSortableData(issues ?? []);
+
+  const handleFilterValue = (value: string) => {
+    setFilterValue(value);
+  };
+
+  const handleFilterKey = (value: string) => {
+    setFilterKey(value);
+  };
 
   const getClassNamesFor = (name: string) => {
     if (!sortConfig) {
@@ -99,7 +111,14 @@ export const Issues = () => {
 
   useEffect(() => {
     if (items) {
-      const i = [...items];
+      let i = [...items];
+
+      if (filterValue) {
+        const res = i.filter((issue) =>
+          (issue as any)[filterKey].toLowerCase().startsWith(filterValue)
+        );
+        i = [...res];
+      }
 
       const result = new Array(Math.ceil(i.length / take))
         .fill(i)
@@ -108,7 +127,7 @@ export const Issues = () => {
 
       setTableValues(result[indexPage]);
     }
-  }, [take, items, indexPage]);
+  }, [take, items, indexPage, filterValue, filterKey]);
 
   const formSchema = Yup.object().shape({
     issue: Yup.string().required().min(2),
@@ -139,14 +158,14 @@ export const Issues = () => {
 
   const columns = useMemo(
     () => [
-      { label: "ID", accessor: "id", sortable: true },
-      { label: "Problema", accessor: "issue", sortable: true },
-      { label: "Versão", accessor: "version", sortable: true },
-      { label: "Autor", accessor: "autor", sortable: true },
-      { label: "Descrição", accessor: "description", sortable: true },
-      { label: "Prioridade", accessor: "priority", sortable: true },
-      { label: "Data", accessor: "createdAt", sortable: true },
-      { label: "Status", accessor: "status", sortable: true },
+      { label: "ID", accessor: "id", Filter: TextFilter },
+      { label: "Problema", accessor: "issue", Filter: TextFilter },
+      { label: "Versão", accessor: "version", Filter: TextFilter },
+      { label: "Autor", accessor: "autor", Filter: TextFilter },
+      { label: "Descrição", accessor: "description", Filter: TextFilter },
+      { label: "Prioridade", accessor: "priority", Filter: TextFilter },
+      { label: "Data", accessor: "createdAt", Filter: DateFilter },
+      { label: "Status", accessor: "status", Filter: TextFilter },
     ],
     []
   );
@@ -171,6 +190,10 @@ export const Issues = () => {
               columns={columns}
               getClassNamesFor={getClassNamesFor}
               requestSort={requestSort}
+              issues={items}
+              handleFilterValue={handleFilterValue}
+              filterValue={filterValue}
+              handleFilterKey={handleFilterKey}
             />
             <Tbody>
               {tableValues
