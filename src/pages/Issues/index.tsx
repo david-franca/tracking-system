@@ -1,5 +1,4 @@
 import "react-datepicker/dist/react-datepicker.css";
-import "moment/locale/pt-br";
 
 import { AxiosError } from "axios";
 import { useFormik } from "formik";
@@ -51,8 +50,6 @@ import TableHead from "./components/TableHead";
 import TextFilter from "./components/TextFilter";
 import DateFilter from "./components/DateFilter";
 import CreateIssueModal from "./components/CreateIssueModal";
-
-moment.locale("pt-br");
 
 export const Issues = () => {
   const { signed, logout, payload, createIssue, deleteIssues } = useAuth();
