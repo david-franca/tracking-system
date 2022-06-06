@@ -1,18 +1,15 @@
 import { useFormik } from "formik";
 import { MutableRefObject, useEffect, useRef, useState } from "react";
 import FocusLock from "react-focus-lock";
-import { IoPencil, IoTrash } from "react-icons/io5";
 
 import { DeleteIcon, EditIcon } from "@chakra-ui/icons";
 import {
+  Box,
   Button,
   ButtonGroup,
-  Checkbox,
-  CheckboxGroup,
   FormControl,
   FormLabel,
   IconButton,
-  Input,
   Popover,
   PopoverArrow,
   PopoverBody,
@@ -29,7 +26,7 @@ import {
   useToast,
 } from "@chakra-ui/react";
 
-import { Issue, Priority, Role, Status } from "../../../@types";
+import { Issue, Priority, Status } from "../../../@types";
 import { IssueInput, useAuth } from "../../../hooks/useAuth";
 import { handleError } from "../../../utils/handleError";
 
@@ -47,6 +44,7 @@ const Form = ({ firstFieldRef, onCancel, issue, onSave }: FormProps) => {
   const [priorityValue, setPriorityValue] = useState<string>(issue.priority);
   const [statusValue, setStatusValue] = useState<string>(issue.status);
   const [loading, setLoading] = useState(false);
+  const { payload } = useAuth();
 
   const formik = useFormik({
     initialValues: {
@@ -119,12 +117,32 @@ const Form = ({ firstFieldRef, onCancel, issue, onSave }: FormProps) => {
           </RadioGroup>
         </FormControl>
 
-        <FormControl>
+        <FormControl
+          hidden={
+            issue.id !== payload.id &&
+            (issue.status === "APROVADO" || issue.status === "REPROVADO")
+          }
+        >
           <FormLabel htmlFor="status">Status</FormLabel>
           <RadioGroup value={statusValue} onChange={setStatusValue}>
             <Stack spacing={4}>
               {Object.values(Status).map((status) => (
-                <Radio value={status} key={status}>
+                <Radio
+                  hidden={
+                    issue.id !== payload.id &&
+                    (status === "APROVADO" || status === "REPROVADO")
+                  }
+                  isDisabled={
+                    issue.id === payload.id &&
+                    ["MASTER", "TESTER"].includes(payload.role)
+                      ? false
+                      : ["APROVADO", "REPROVADO"].includes(status)
+                      ? true
+                      : false
+                  }
+                  value={status}
+                  key={status}
+                >
                   {status}
                 </Radio>
               ))}
@@ -159,34 +177,6 @@ const ActionsButtons = ({ issue }: ActionsButtonsProps) => {
   const [loading, setLoading] = useState(false);
   const firstFieldRef = useRef(null);
   const toast = useToast();
-
-  const handleDelete = async () => {
-    setLoading(true);
-    try {
-      await deleteIssue(issue.id);
-      setLoading(false);
-      toast({
-        title: "Aviso",
-        description: "Deletado com sucesso",
-        status: "success",
-        duration: 5000,
-        isClosable: true,
-      });
-    } catch (error) {
-      const e = handleError(error);
-      if (e && Array.isArray(e)) {
-        e.forEach((err) => {
-          toast({
-            title: "Error",
-            description: err,
-            status: "error",
-            duration: 5000,
-            isClosable: true,
-          });
-        });
-      }
-    }
-  };
 
   return (
     <ButtonGroup size="sm" isAttached variant="solid">
@@ -223,6 +213,7 @@ const ActionsButtons = ({ issue }: ActionsButtonsProps) => {
           <>
             <PopoverTrigger>
               <IconButton
+                isDisabled={payload.role !== "MASTER"}
                 colorScheme="red"
                 aria-label="Delete issue"
                 icon={<DeleteIcon />}

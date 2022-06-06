@@ -9,6 +9,7 @@ import {
   Tr,
 } from "@chakra-ui/react";
 import { Issue } from "../../../@types";
+import { useAuth } from "../../../hooks/useAuth";
 import { TextFilter, TextFilterProps } from "./TextFilter";
 
 interface ColumnsProps {
@@ -36,17 +37,11 @@ const TableHead = ({
   handleFilterValue,
   handleFilterKey,
 }: TableHeadProps) => {
-  /*   const filterItens = (key: string) => {
-    const items = [...issues];
-
-    const itensFiltered = items.filter((item) =>
-      (item as any)[sortConfig.key].startsWith(key)
-    );
-  }; */
+  const { payload } = useAuth();
   return (
     <Thead>
       <Tr>
-        <Th></Th>
+        <Th hidden={payload.role !== "MASTER"}></Th>
         {columns.map(({ label, accessor, Filter }) => {
           return (
             <Th key={accessor}>
@@ -64,8 +59,8 @@ const TableHead = ({
                     icon={<SearchIcon />}
                     aria-label={`search-${accessor}`}
                     onClick={() => {
-                      handleFilterValue('')
-                      handleFilterKey(accessor)
+                      handleFilterValue("");
+                      handleFilterKey(accessor);
                     }}
                   />
                 </PopoverTrigger>

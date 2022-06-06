@@ -49,9 +49,9 @@ import BadgesColored from "./components/BadgesColored";
 import TableHead from "./components/TableHead";
 import { TextFilter } from "./components/TextFilter";
 import DateFilter from "./components/DateFilter";
+import { CreateIssueModal } from "./components/CreateIssueModal";
 
 moment.locale("pt-br");
-Yup.setLocale(ptForm);
 
 export const Issues = () => {
   const { signed, logout, payload, createIssue, deleteIssues } = useAuth();
@@ -137,27 +137,6 @@ export const Issues = () => {
     }
   }, [take, items, indexPage, filterValue, filterKey]);
 
-  const formSchema = Yup.object().shape({
-    issue: Yup.string().required().min(2),
-    version: Yup.string().required().min(2),
-    description: Yup.string().required().min(2).max(200),
-  });
-
-  const { handleSubmit, values, handleChange, touched, errors } = useFormik({
-    initialValues: {
-      issue: "",
-      version: "",
-      description: "",
-      priority: Priority.NORMAL,
-      autor: payload.username,
-    },
-    validationSchema: formSchema,
-    onSubmit: async (values) => {
-      await createIssue(values);
-      onClose();
-    },
-  });
-
   useEffect(() => {
     if (!signed) {
       navigate("/");
@@ -212,7 +191,7 @@ export const Issues = () => {
               {tableValues
                 ? tableValues.map((issue: Issue) => (
                     <Tr key={issue.id}>
-                      <Th>
+                      <Th hidden={payload.role !== "MASTER"}>
                         <Checkbox
                           value={issue.id}
                           isChecked={idsChecked.includes(issue.id)}
@@ -301,119 +280,7 @@ export const Issues = () => {
           </Flex>
         </Flex>
       </Flex>
-      <Modal isOpen={isOpen} onClose={onClose}>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Criar Issue</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <form noValidate onSubmit={handleSubmit}>
-              <Stack spacing={5}>
-                <FormControl
-                  isRequired
-                  isInvalid={touched.issue && Boolean(errors.issue)}
-                >
-                  <FormLabel
-                    htmlFor="issue"
-                    ms="4px"
-                    fontSize="sm"
-                    fontWeight="normal"
-                  >
-                    Titulo
-                  </FormLabel>
-                  <Input
-                    id="issue"
-                    variant="filled"
-                    type="text"
-                    value={values.issue}
-                    onChange={handleChange}
-                  />
-                  <FormErrorMessage ms="4px">
-                    {touched.issue && errors.issue}
-                  </FormErrorMessage>
-                </FormControl>
-                <FormControl
-                  isRequired
-                  isInvalid={touched.version && Boolean(errors.version)}
-                >
-                  <FormLabel
-                    htmlFor="version"
-                    ms="4px"
-                    fontSize="sm"
-                    fontWeight="normal"
-                  >
-                    Versão
-                  </FormLabel>
-                  <Input
-                    id="version"
-                    variant="filled"
-                    type="text"
-                    value={values.version}
-                    onChange={handleChange}
-                  />
-                  <FormErrorMessage ms="4px">
-                    {touched.version && errors.version}
-                  </FormErrorMessage>
-                </FormControl>
-                <FormControl
-                  isRequired
-                  isInvalid={touched.description && Boolean(errors.description)}
-                >
-                  <FormLabel
-                    htmlFor="description"
-                    ms="4px"
-                    fontSize="sm"
-                    fontWeight="normal"
-                  >
-                    Descrição
-                  </FormLabel>
-                  <Input
-                    id="description"
-                    placeholder="Descrição"
-                    variant="filled"
-                    type="text"
-                    value={values.description}
-                    onChange={handleChange}
-                  />
-                  <FormErrorMessage ms="4px">
-                    {touched.description && errors.description}
-                  </FormErrorMessage>
-                </FormControl>
-                <FormControl
-                  isRequired
-                  isInvalid={touched.priority && Boolean(errors.priority)}
-                >
-                  <FormLabel
-                    htmlFor="priority"
-                    ms="4px"
-                    fontSize="sm"
-                    fontWeight="normal"
-                  >
-                    Prioridade
-                  </FormLabel>
-                  <Select
-                    value={values.priority}
-                    onChange={handleChange}
-                    id="priority"
-                  >
-                    {Object.keys(Priority).map((value) => (
-                      <option value={value} key={value}>
-                        {value}
-                      </option>
-                    ))}
-                  </Select>
-                  <FormErrorMessage ms="4px">
-                    {touched.priority && errors.priority}
-                  </FormErrorMessage>
-                </FormControl>
-                <Button type="submit" colorScheme="teal">
-                  Salvar
-                </Button>
-              </Stack>
-            </form>
-          </ModalBody>
-        </ModalContent>
-      </Modal>
+      <CreateIssueModal isOpen={isOpen} onClose={onClose} />
     </Flex>
   );
 };
