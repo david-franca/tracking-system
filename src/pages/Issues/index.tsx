@@ -47,9 +47,9 @@ import ActionsButtons from "./components/ActionsButtons";
 import ActiveButton from "./components/ActiveButton";
 import BadgesColored from "./components/BadgesColored";
 import TableHead from "./components/TableHead";
-import { TextFilter } from "./components/TextFilter";
+import TextFilter from "./components/TextFilter";
 import DateFilter from "./components/DateFilter";
-import { CreateIssueModal } from "./components/CreateIssueModal";
+import CreateIssueModal from "./components/CreateIssueModal";
 
 moment.locale("pt-br");
 

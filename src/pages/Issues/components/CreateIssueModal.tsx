@@ -28,10 +28,7 @@ interface CreateIssueModalProps {
   onClose: () => void;
 }
 
-export const CreateIssueModal = ({
-  isOpen,
-  onClose,
-}: CreateIssueModalProps) => {
+const CreateIssueModal = ({ isOpen, onClose }: CreateIssueModalProps) => {
   const formSchema = Yup.object().shape({
     issue: Yup.string().required().min(2),
     version: Yup.string().required().min(2),
@@ -171,3 +168,5 @@ export const CreateIssueModal = ({
     </Modal>
   );
 };
+
+export default CreateIssueModal;

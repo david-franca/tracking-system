@@ -11,10 +11,7 @@ export interface TextFilterProps {
   filterValue?: string;
 }
 
-export const TextFilter = ({
-  filterValue,
-  handleFilterValue,
-}: TextFilterProps) => {
+const TextFilter = ({ filterValue, handleFilterValue }: TextFilterProps) => {
   return (
     <Portal>
       <PopoverContent>
@@ -31,3 +28,5 @@ export const TextFilter = ({
     </Portal>
   );
 };
+
+export default TextFilter;

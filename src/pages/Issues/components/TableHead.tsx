@@ -8,9 +8,10 @@ import {
   Thead,
   Tr,
 } from "@chakra-ui/react";
+
 import { Issue } from "../../../@types";
 import { useAuth } from "../../../hooks/useAuth";
-import { TextFilter, TextFilterProps } from "./TextFilter";
+import TextFilter, { TextFilterProps } from "./TextFilter";
 
 interface ColumnsProps {
   label: string;
