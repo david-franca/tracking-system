@@ -31,7 +31,6 @@ interface AuthProviderProps {
 
 interface AuthContextData {
   payload: User;
-  issues: Issue[];
   createIssue: (issueInput: IssueInput) => Promise<Issue>;
   deleteIssue: (...ids: number[]) => void;
   updateIssue: (id: number, issue: IssueInputUpdate) => Promise<Issue>;
@@ -47,10 +46,21 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [payload, setPayload] = useLocalStorage<User>("userJWT", {} as User);
   const navigate = useNavigate();
   const toast = useToast();
-  const { data: issues, error } = useAxios<Issue[], AxiosError>(
-    "issues",
-    payload.token
-  );
+  
+
+  /* useEffect(() => {
+    console.log(error);
+    if (error instanceof AxiosError && error.response?.status === 401) {
+      toast({
+        title: "Sessão Expirada",
+        description: "Faça login novamente para continuar",
+        status: "info",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+    navigate("/");
+  }, [error]); */
 
   const login = async (username: string, password: string) => {
     const { data } = await api.post<User>("/auth/log-in", {
@@ -75,7 +85,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     return data;
   };
 
-  const deleteIssue = (...ids: number[]) => {
+  const deleteIssue = async (...ids: number[]) => {
     ids.forEach(async (id) => {
       await api.delete(`/issues/${id}`, {
         headers: { "x-access-token": payload.token },
@@ -84,7 +94,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   const updateIssue = async (id: number, issue: IssueInputUpdate) => {
-    const response = await api.patch<Issue>(`/issues/${id}}`, issue, {
+    console.log(id, issue);
+    const response = await api.patch<Issue>(`/issues/${id}`, issue, {
       headers: { "x-access-token": payload.token },
     });
     return response.data;
@@ -99,7 +110,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     <AuthContext.Provider
       value={{
         payload,
-        issues: issues ?? [],
         createIssue,
         deleteIssue,
         updateIssue,
