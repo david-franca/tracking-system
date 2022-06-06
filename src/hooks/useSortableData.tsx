@@ -1,3 +1,4 @@
+import moment from "moment";
 import { useMemo, useState } from "react";
 import { Issue } from "../@types";
 
@@ -8,12 +9,13 @@ interface Config {
 
 export const useSortableData = (
   items: Issue[],
-  config: Config | null = null,
+  config: Config | null = null
 ) => {
   const [sortConfig, setSortConfig] = useState(config);
 
   const sortedItems = useMemo(() => {
     let sortableItems = [...items];
+
     if (sortConfig !== null) {
       sortableItems.sort((a, b) => {
         if ((a as any)[sortConfig.key] < (b as any)[sortConfig.key]) {

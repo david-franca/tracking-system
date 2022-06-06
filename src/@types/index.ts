@@ -50,26 +50,25 @@ interface IssueWhereInput {
   issue?: string;
   autor?: string;
   priority?: Priority;
-  createdAt?: Date | string;
+  createdAt?: string;
   description?: string;
   status?: Status;
   userId?: number;
 }
 
-export type SortOrder = 'asc' | 'desc'
-
+export type SortOrder = "asc" | "desc";
 
 export type IssueOrderByWithRelationInput = {
-  id?: SortOrder
-  version?: SortOrder
-  issue?: SortOrder
-  autor?: SortOrder
-  priority?: SortOrder
-  createdAt?: SortOrder
-  description?: SortOrder
-  status?: SortOrder
-  userId?: SortOrder
-}
+  id?: SortOrder;
+  version?: SortOrder;
+  issue?: SortOrder;
+  autor?: SortOrder;
+  priority?: SortOrder;
+  createdAt?: SortOrder;
+  description?: SortOrder;
+  status?: SortOrder;
+  userId?: SortOrder;
+};
 
 export interface Params {
   take?: number;

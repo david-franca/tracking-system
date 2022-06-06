@@ -114,9 +114,17 @@ export const Issues = () => {
       let i = [...items];
 
       if (filterValue) {
-        const res = i.filter((issue) =>
-          (issue as any)[filterKey].toLowerCase().startsWith(filterValue)
-        );
+        const res = i.filter((issue) => {
+          if (filterKey === "id" && Number(filterValue) === issue.id) {
+            return issue;
+          }
+          if (
+            filterKey !== "id" &&
+            (issue as any)[filterKey].toLowerCase().startsWith(filterValue)
+          ) {
+            return issue;
+          }
+        });
         i = [...res];
       }
 
@@ -197,7 +205,7 @@ export const Issues = () => {
             />
             <Tbody>
               {tableValues
-                ? tableValues.map((issue) => (
+                ? tableValues.map((issue: Issue) => (
                     <Tr key={issue.id}>
                       <Th>
                         <Checkbox
@@ -222,7 +230,7 @@ export const Issues = () => {
                       <Th>
                         <BadgesColored title={issue.priority} />
                       </Th>
-                      <Th>{moment(new Date(issue.createdAt)).calendar()}</Th>
+                      <Th>{issue.createdAt}</Th>
                       <Th>
                         <BadgesColored title={issue.status} />
                       </Th>
