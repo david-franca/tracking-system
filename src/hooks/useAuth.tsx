@@ -14,6 +14,7 @@ import { Issue, Priority, Status, User } from "../@types";
 import { api } from "../utils/api";
 import { useAxios } from "./useAxios";
 import { useLocalStorage } from "./useLocalStorage";
+import { handleError } from "../utils/handleError";
 
 export interface IssueInput {
   version: string;
@@ -32,7 +33,8 @@ interface AuthProviderProps {
 interface AuthContextData {
   payload: User;
   createIssue: (issueInput: IssueInput) => Promise<Issue>;
-  deleteIssue: (...ids: number[]) => void;
+  deleteIssues: (...ids: number[]) => void;
+  deleteIssue: (id: number) => Promise<void>;
   updateIssue: (id: number, issue: IssueInputUpdate) => Promise<Issue>;
   logout: () => void;
   login: (username: string, password: string) => Promise<void>;
@@ -46,7 +48,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [payload, setPayload] = useLocalStorage<User>("userJWT", {} as User);
   const navigate = useNavigate();
   const toast = useToast();
-  
 
   /* useEffect(() => {
     console.log(error);
@@ -85,11 +86,35 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     return data;
   };
 
-  const deleteIssue = async (...ids: number[]) => {
-    ids.forEach(async (id) => {
-      await api.delete(`/issues/${id}`, {
-        headers: { "x-access-token": payload.token },
+  const deleteIssues = (...ids: number[]) => {
+    try {
+      ids.map(async (id) => {
+        return await deleteIssue(id);
       });
+      toast({
+        title: "Sucesso",
+        description: "As issues foram apagadas",
+        status: "success",
+        duration: 5000,
+        isClosable: true,
+      });
+    } catch (error) {
+      const e = handleError(error);
+      if (typeof e === "string") {
+        toast({
+          title: "Sucesso",
+          description: e,
+          status: "success",
+          duration: 5000,
+          isClosable: true,
+        });
+      }
+    }
+  };
+
+  const deleteIssue = async (id: number) => {
+    await api.delete(`/issues/${id}`, {
+      headers: { "x-access-token": payload.token },
     });
   };
 
@@ -111,6 +136,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       value={{
         payload,
         createIssue,
+        deleteIssues,
         deleteIssue,
         updateIssue,
         logout,

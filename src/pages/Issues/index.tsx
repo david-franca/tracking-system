@@ -54,7 +54,7 @@ moment.locale("pt-br");
 Yup.setLocale(ptForm);
 
 export const Issues = () => {
-  const { signed, logout, payload, createIssue } = useAuth();
+  const { signed, logout, payload, createIssue, deleteIssues } = useAuth();
   const [take, setTake] = useState(10);
   const [tableValues, setTableValues] = useState<Issue[]>([]);
   const [pagination, setPagination] = useState<Issue[][]>([]);
@@ -187,7 +187,12 @@ export const Issues = () => {
           </Heading>
           <Box>
             {idsChecked.length !== 0 ? (
-              <Button colorScheme="red">Deletar Issues</Button>
+              <Button
+                onClick={() => deleteIssues(...idsChecked)}
+                colorScheme="red"
+              >
+                Deletar Issues
+              </Button>
             ) : null}
             <ActiveButton createIssue={onOpen} logout={logout} />
           </Box>

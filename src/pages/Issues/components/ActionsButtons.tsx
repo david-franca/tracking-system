@@ -219,40 +219,87 @@ const ActionsButtons = ({ issue }: ActionsButtonsProps) => {
         </PopoverContent>
       </Popover>
       <Popover>
-        <PopoverTrigger>
-          <IconButton
-            colorScheme="red"
-            aria-label="Delete issue"
-            icon={<DeleteIcon />}
-          />
-        </PopoverTrigger>
-        <Portal>
-          <PopoverContent color="white" bg="blue.800" borderColor="blue.800">
-            <PopoverArrow bg="blue.800" />
-            <PopoverCloseButton />
-            <PopoverHeader pt={4} fontWeight="bold" border="0">
-              Deletar Linha?
-            </PopoverHeader>
-            <PopoverBody>Essa é uma ação irreversível. Confirmar?</PopoverBody>
-            <PopoverFooter
-              border="0"
-              display="flex"
-              alignItems="center"
-              justifyContent="flex-end"
-              pb={4}
-            >
-              <Button
-                isDisabled={payload.role !== "MASTER"}
-                isLoading={loading}
-                loadingText="Aguarde..."
+        {({ onClose: close }) => (
+          <>
+            <PopoverTrigger>
+              <IconButton
                 colorScheme="red"
-                onClick={() => handleDelete()}
+                aria-label="Delete issue"
+                icon={<DeleteIcon />}
+              />
+            </PopoverTrigger>
+            <Portal>
+              <PopoverContent
+                color="white"
+                bg="blue.800"
+                borderColor="blue.800"
               >
-                Sim
-              </Button>
-            </PopoverFooter>
-          </PopoverContent>
-        </Portal>
+                <PopoverArrow bg="blue.800" />
+                <PopoverCloseButton />
+                <PopoverHeader pt={4} fontWeight="bold" border="0">
+                  Deletar Linha?
+                </PopoverHeader>
+                <PopoverBody>
+                  Essa é uma ação irreversível. Confirmar?
+                </PopoverBody>
+                <PopoverFooter
+                  border="0"
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="flex-end"
+                  pb={4}
+                >
+                  <Button
+                    isDisabled={payload.role !== "MASTER"}
+                    isLoading={loading}
+                    loadingText="Aguarde..."
+                    colorScheme="red"
+                    onClick={() => {
+                      setLoading(true);
+                      deleteIssue(issue.id)
+                        .then(() => {
+                          setLoading(false);
+                          toast({
+                            title: "Aviso",
+                            description: "Deletado com sucesso",
+                            status: "success",
+                            duration: 5000,
+                            isClosable: true,
+                          });
+                          close();
+                        })
+                        .catch((error) => {
+                          setLoading(false);
+                          const e = handleError(error);
+                          if (e && Array.isArray(e)) {
+                            e.map((err) => {
+                              toast({
+                                title: "Error",
+                                description: err,
+                                status: "error",
+                                duration: 5000,
+                                isClosable: true,
+                              });
+                            });
+                          } else {
+                            toast({
+                              title: "Error",
+                              description: e,
+                              status: "error",
+                              duration: 5000,
+                              isClosable: true,
+                            });
+                          }
+                        });
+                    }}
+                  >
+                    Sim
+                  </Button>
+                </PopoverFooter>
+              </PopoverContent>
+            </Portal>
+          </>
+        )}
       </Popover>
     </ButtonGroup>
   );
