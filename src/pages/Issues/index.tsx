@@ -35,6 +35,7 @@ import {
   Tbody,
   Text,
   Th,
+  Tooltip,
   Tr,
   useDisclosure,
 } from "@chakra-ui/react";
@@ -205,11 +206,13 @@ export const Issues = () => {
                       <Th>{issue.version}</Th>
                       <Th>{issue.autor}</Th>
                       <Th>
-                        <Box maxW={100} whiteSpace="nowrap">
-                          <Text overflow="hidden" textOverflow="ellipsis">
-                            {issue.description}
-                          </Text>
-                        </Box>
+                        <Tooltip label={issue.description}>
+                          <Box maxW={150} whiteSpace="nowrap">
+                            <Text overflow="hidden" textOverflow="ellipsis">
+                              {issue.description}
+                            </Text>
+                          </Box>
+                        </Tooltip>
                       </Th>
                       <Th>
                         <BadgesColored title={issue.priority} />
