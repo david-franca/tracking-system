@@ -17,7 +17,7 @@ import {
 } from "@chakra-ui/react";
 
 import { Issue } from "../../@types";
-import { useAuth } from "../../hooks/useAuth";
+import { IssueInput, useAuth } from "../../hooks/useAuth";
 import { useAxios } from "../../hooks/useAxios";
 import { useSortableData } from "../../hooks/useSortableData";
 import { handleError } from "../../utils/handleError";
@@ -30,7 +30,7 @@ import TablePagination from "./components/TablePagination";
 import TextFilter from "./components/TextFilter";
 
 export const Issues = () => {
-  const { signed, logout, payload, deleteIssue } = useAuth();
+  const { signed, logout, payload, deleteIssue, createIssue } = useAuth();
   const [take, setTake] = useState(10);
   const [tableValues, setTableValues] = useState<Issue[]>([]);
   const [pagination, setPagination] = useState<Issue[][]>([]);
@@ -90,6 +90,32 @@ export const Issues = () => {
         duration: 5000,
         isClosable: true,
       });
+    } catch (error) {
+      const e = handleError(error);
+      if (typeof e === "string") {
+        toast({
+          title: "Erro",
+          description: e,
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+      }
+    }
+  };
+
+  const create = async (values: IssueInput) => {
+    try {
+      const response = await createIssue(values);
+      const i = [...items];
+      i.unshift(response);
+
+      const result = new Array(Math.ceil(i.length / take))
+        .fill(i)
+        .map((_) => i.splice(0, take));
+      setPagination(result);
+
+      setTableValues(result[indexPage]);
     } catch (error) {
       const e = handleError(error);
       if (typeof e === "string") {
@@ -226,7 +252,11 @@ export const Issues = () => {
           take={take}
         />
       </Flex>
-      <CreateIssueModal isOpen={isOpen} onClose={onClose} />
+      <CreateIssueModal
+        isOpen={isOpen}
+        onClose={onClose}
+        createIssue={create}
+      />
     </Flex>
   );
 };

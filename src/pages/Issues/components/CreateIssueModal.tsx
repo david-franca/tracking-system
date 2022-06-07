@@ -17,25 +17,30 @@ import {
   Stack,
 } from "@chakra-ui/react";
 
-import { Priority } from "../../../@types";
+import { Issue, Priority } from "../../../@types";
 import { useFormik } from "formik";
-import { useAuth } from "../../../hooks/useAuth";
+import { IssueInput, useAuth } from "../../../hooks/useAuth";
 
 Yup.setLocale(ptForm);
 
 interface CreateIssueModalProps {
   isOpen: boolean;
   onClose: () => void;
+  createIssue: (issueInput: IssueInput) => Promise<void>;
 }
 
-const CreateIssueModal = ({ isOpen, onClose }: CreateIssueModalProps) => {
+const CreateIssueModal = ({
+  isOpen,
+  onClose,
+  createIssue,
+}: CreateIssueModalProps) => {
   const formSchema = Yup.object().shape({
     issue: Yup.string().required().min(2),
     version: Yup.string().required().min(2),
     description: Yup.string().required().min(2).max(200),
   });
 
-  const { payload, createIssue } = useAuth();
+  const { payload } = useAuth();
 
   const { handleSubmit, values, handleChange, touched, errors, resetForm } =
     useFormik({

@@ -129,12 +129,12 @@ const Form = ({ firstFieldRef, onCancel, issue, onSave }: FormProps) => {
               {Object.values(Status).map((status) => (
                 <Radio
                   hidden={
-                    issue.id !== payload.id &&
+                    issue.userId !== payload.id &&
                     (status === "APROVADO" || status === "REPROVADO")
                   }
                   isDisabled={
-                    issue.id === payload.id &&
-                    ["MASTER", "TESTER"].includes(payload.role)
+                    issue.userId === payload.id &&
+                    (payload.role === "MASTER" || payload.role === "TESTER")
                       ? false
                       : ["APROVADO", "REPROVADO"].includes(status)
                       ? true
