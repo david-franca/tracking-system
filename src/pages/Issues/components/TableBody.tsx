@@ -11,12 +11,14 @@ interface TableBodyProps {
   tableValues: Issue[];
   idsChecked: number[];
   handleChecked: (id: number, isChecked: boolean) => void;
+  deleteIssue: (...ids: number[]) => void;
 }
 
 const TableBody = ({
   tableValues,
   idsChecked,
   handleChecked,
+  deleteIssue,
 }: TableBodyProps) => {
   const { payload } = useAuth();
   return (
@@ -54,7 +56,7 @@ const TableBody = ({
                 <BadgesColored title={issue.status} />
               </Th>
               <Th>
-                <ActionsButtons issue={issue} />
+                <ActionsButtons issue={issue} deleteIssue={deleteIssue} />
               </Th>
             </Tr>
           ))

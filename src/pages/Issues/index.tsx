@@ -13,12 +13,14 @@ import {
   Table,
   TableContainer,
   useDisclosure,
+  useToast,
 } from "@chakra-ui/react";
 
 import { Issue } from "../../@types";
 import { useAuth } from "../../hooks/useAuth";
 import { useAxios } from "../../hooks/useAxios";
 import { useSortableData } from "../../hooks/useSortableData";
+import { handleError } from "../../utils/handleError";
 import ActiveButton from "./components/ActiveButton";
 import CreateIssueModal from "./components/CreateIssueModal";
 import DateFilter from "./components/DateFilter";
@@ -28,7 +30,7 @@ import TablePagination from "./components/TablePagination";
 import TextFilter from "./components/TextFilter";
 
 export const Issues = () => {
-  const { signed, logout, payload, createIssue, deleteIssues } = useAuth();
+  const { signed, logout, payload, deleteIssue } = useAuth();
   const [take, setTake] = useState(10);
   const [tableValues, setTableValues] = useState<Issue[]>([]);
   const [pagination, setPagination] = useState<Issue[][]>([]);
@@ -37,6 +39,7 @@ export const Issues = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [filterValue, setFilterValue] = useState("");
   const [filterKey, setFilterKey] = useState("");
+  const toast = useToast();
 
   const navigate = useNavigate();
 
@@ -62,6 +65,43 @@ export const Issues = () => {
 
   const handleFilterKey = (value: string) => {
     setFilterKey(value);
+  };
+
+  const deleteIssues = async (...ids: number[]) => {
+    try {
+      ids.map(async (id) => {
+        await deleteIssue(id);
+        const i = [...items];
+        const index = i.findIndex((value) => value.id === id);
+        i.splice(index, 1);
+
+        const result = new Array(Math.ceil(i.length / take))
+          .fill(i)
+          .map((_) => i.splice(0, take));
+        setPagination(result);
+
+        setTableValues(result[indexPage]);
+        return;
+      });
+      toast({
+        title: "Sucesso",
+        description: "As issues foram apagadas",
+        status: "success",
+        duration: 5000,
+        isClosable: true,
+      });
+    } catch (error) {
+      const e = handleError(error);
+      if (typeof e === "string") {
+        toast({
+          title: "Erro",
+          description: e,
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+      }
+    }
   };
 
   const getClassNamesFor = (name: string) => {
@@ -174,6 +214,7 @@ export const Issues = () => {
               handleChecked={handleChecked}
               idsChecked={idsChecked}
               tableValues={tableValues}
+              deleteIssue={deleteIssues}
             />
           </Table>
         </TableContainer>

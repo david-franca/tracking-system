@@ -169,10 +169,11 @@ const Form = ({ firstFieldRef, onCancel, issue, onSave }: FormProps) => {
 
 interface ActionsButtonsProps {
   issue: Issue;
+  deleteIssue: (...ids: number[]) => void;
 }
 
-const ActionsButtons = ({ issue }: ActionsButtonsProps) => {
-  const { updateIssue, deleteIssue, payload } = useAuth();
+const ActionsButtons = ({ issue, deleteIssue }: ActionsButtonsProps) => {
+  const { updateIssue, payload } = useAuth();
   const { onOpen, onClose, isOpen } = useDisclosure();
   const [loading, setLoading] = useState(false);
   const firstFieldRef = useRef(null);
@@ -247,41 +248,9 @@ const ActionsButtons = ({ issue }: ActionsButtonsProps) => {
                     colorScheme="red"
                     onClick={() => {
                       setLoading(true);
-                      deleteIssue(issue.id)
-                        .then(() => {
-                          setLoading(false);
-                          toast({
-                            title: "Aviso",
-                            description: "Deletado com sucesso",
-                            status: "success",
-                            duration: 5000,
-                            isClosable: true,
-                          });
-                          close();
-                        })
-                        .catch((error) => {
-                          setLoading(false);
-                          const e = handleError(error);
-                          if (e && Array.isArray(e)) {
-                            e.map((err) => {
-                              toast({
-                                title: "Error",
-                                description: err,
-                                status: "error",
-                                duration: 5000,
-                                isClosable: true,
-                              });
-                            });
-                          } else {
-                            toast({
-                              title: "Error",
-                              description: e,
-                              status: "error",
-                              duration: 5000,
-                              isClosable: true,
-                            });
-                          }
-                        });
+                      deleteIssue(issue.id);
+                      setLoading(false);
+                      close();
                     }}
                   >
                     Sim

@@ -33,7 +33,6 @@ interface AuthProviderProps {
 interface AuthContextData {
   payload: User;
   createIssue: (issueInput: IssueInput) => Promise<Issue>;
-  deleteIssues: (...ids: number[]) => void;
   deleteIssue: (id: number) => Promise<void>;
   updateIssue: (id: number, issue: IssueInputUpdate) => Promise<Issue>;
   logout: () => void;
@@ -86,32 +85,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     return data;
   };
 
-  const deleteIssues = (...ids: number[]) => {
-    try {
-      ids.map(async (id) => {
-        return await deleteIssue(id);
-      });
-      toast({
-        title: "Sucesso",
-        description: "As issues foram apagadas",
-        status: "success",
-        duration: 5000,
-        isClosable: true,
-      });
-    } catch (error) {
-      const e = handleError(error);
-      if (typeof e === "string") {
-        toast({
-          title: "Sucesso",
-          description: e,
-          status: "success",
-          duration: 5000,
-          isClosable: true,
-        });
-      }
-    }
-  };
-
   const deleteIssue = async (id: number) => {
     await api.delete(`/issues/${id}`, {
       headers: { "x-access-token": payload.token },
@@ -136,7 +109,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       value={{
         payload,
         createIssue,
-        deleteIssues,
         deleteIssue,
         updateIssue,
         logout,
