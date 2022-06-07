@@ -1,55 +1,31 @@
 import "react-datepicker/dist/react-datepicker.css";
 
 import { AxiosError } from "axios";
-import { useFormik } from "formik";
-import * as moment from "moment";
-import NP from "number-precision";
-import { ChangeEvent, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import * as Yup from "yup";
-import { ptForm } from "yup-locale-pt";
 
 import { TriangleDownIcon, TriangleUpIcon, UpDownIcon } from "@chakra-ui/icons";
 import {
   Box,
   Button,
-  chakra,
-  Checkbox,
   Flex,
-  FormControl,
-  FormErrorMessage,
-  FormLabel,
   Heading,
-  Input,
-  Modal,
-  ModalBody,
-  ModalCloseButton,
-  ModalContent,
-  ModalHeader,
-  ModalOverlay,
-  Select,
-  Stack,
   Table,
   TableContainer,
-  Tbody,
-  Text,
-  Th,
-  Tooltip,
-  Tr,
   useDisclosure,
 } from "@chakra-ui/react";
 
-import { Issue, Priority } from "../../@types";
+import { Issue } from "../../@types";
 import { useAuth } from "../../hooks/useAuth";
 import { useAxios } from "../../hooks/useAxios";
 import { useSortableData } from "../../hooks/useSortableData";
-import ActionsButtons from "./components/ActionsButtons";
 import ActiveButton from "./components/ActiveButton";
-import BadgesColored from "./components/BadgesColored";
-import TableHead from "./components/TableHead";
-import TextFilter from "./components/TextFilter";
-import DateFilter from "./components/DateFilter";
 import CreateIssueModal from "./components/CreateIssueModal";
+import DateFilter from "./components/DateFilter";
+import TableBody from "./components/TableBody";
+import TableHead from "./components/TableHead";
+import TablePagination from "./components/TablePagination";
+import TextFilter from "./components/TextFilter";
 
 export const Issues = () => {
   const { signed, logout, payload, createIssue, deleteIssues } = useAuth();
@@ -66,10 +42,19 @@ export const Issues = () => {
 
   const { data: issues } = useAxios<Issue[], AxiosError>(
     "issues",
-    payload.token
+    payload.token,
+    { orderBy: { createdAt: "desc" } }
   );
 
   const { items, requestSort, sortConfig } = useSortableData(issues ?? []);
+
+  const handleIndex = (value: number) => {
+    setIndexPage(value);
+  };
+
+  const handleTake = (value: number) => {
+    setTake(value);
+  };
 
   const handleFilterValue = (value: string) => {
     setFilterValue(value);
@@ -185,100 +170,20 @@ export const Issues = () => {
               filterValue={filterValue}
               handleFilterKey={handleFilterKey}
             />
-            <Tbody>
-              {tableValues
-                ? tableValues.map((issue: Issue) => (
-                    <Tr key={issue.id}>
-                      <Th hidden={payload.role !== "MASTER"}>
-                        <Checkbox
-                          value={issue.id}
-                          isChecked={idsChecked.includes(issue.id)}
-                          onChange={(e: ChangeEvent<HTMLInputElement>) => {
-                            handleChecked(Number(issue.id), e.target.checked);
-                          }}
-                        />
-                      </Th>
-                      <Th>{issue.id}</Th>
-                      <Th>{issue.issue}</Th>
-                      <Th>{issue.version}</Th>
-                      <Th>{issue.autor}</Th>
-                      <Th>
-                        <Tooltip label={issue.description}>
-                          <Box maxW={150} whiteSpace="nowrap">
-                            <Text overflow="hidden" textOverflow="ellipsis">
-                              {issue.description}
-                            </Text>
-                          </Box>
-                        </Tooltip>
-                      </Th>
-                      <Th>
-                        <BadgesColored title={issue.priority} />
-                      </Th>
-                      <Th>{issue.createdAt}</Th>
-                      <Th>
-                        <BadgesColored title={issue.status} />
-                      </Th>
-                      <Th>
-                        <ActionsButtons issue={issue} />
-                      </Th>
-                    </Tr>
-                  ))
-                : null}
-            </Tbody>
+            <TableBody
+              handleChecked={handleChecked}
+              idsChecked={idsChecked}
+              tableValues={tableValues}
+            />
           </Table>
         </TableContainer>
-        <Flex
-          background="gray.100"
-          justifyContent="space-around"
-          alignItems="center"
-        >
-          <Flex>
-            <Button onClick={() => setIndexPage(0)} disabled={indexPage === 0}>
-              {"<<"}
-            </Button>{" "}
-            <Button
-              onClick={() => setIndexPage(indexPage - 1)}
-              disabled={indexPage === 0}
-            >
-              {"<"}
-            </Button>{" "}
-            <Button
-              onClick={() => setIndexPage(indexPage + 1)}
-              disabled={indexPage === pagination.length - 1}
-            >
-              {">"}
-            </Button>{" "}
-            <Button
-              onClick={() => setIndexPage(pagination.length - 1)}
-              disabled={indexPage === pagination.length - 1}
-            >
-              {">>"}
-            </Button>
-          </Flex>
-          <Flex>
-            <chakra.span>
-              Página{" "}
-              <Text as="strong">
-                {indexPage + 1} de {NP.round(pagination.length, 0)}
-              </Text>{" "}
-            </chakra.span>
-          </Flex>
-          <Flex alignItems="center">
-            <Text marginRight={3}>Mostrando:</Text>
-            <Select
-              value={take}
-              onChange={(e: any) => {
-                setTake(Number(e.target.value));
-              }}
-            >
-              {[10, 20, 30, 40, 50].map((pageSize) => (
-                <option key={pageSize} value={pageSize}>
-                  {pageSize}
-                </option>
-              ))}
-            </Select>
-          </Flex>
-        </Flex>
+        <TablePagination
+          handleIndex={handleIndex}
+          indexPage={indexPage}
+          pagination={pagination.length}
+          handleTake={handleTake}
+          take={take}
+        />
       </Flex>
       <CreateIssueModal isOpen={isOpen} onClose={onClose} />
     </Flex>
