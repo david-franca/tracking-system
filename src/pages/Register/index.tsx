@@ -1,66 +1,74 @@
 import { AxiosError } from "axios";
+import { useFormik } from "formik";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import * as Yup from "yup";
+import { ptForm } from "yup-locale-pt";
 
 import {
   Button,
   Center,
   Flex,
+  FormControl,
+  FormErrorIcon,
+  FormErrorMessage,
+  FormLabel,
   Heading,
   Input,
   Select,
   Stack,
+  Text,
   useToast,
 } from "@chakra-ui/react";
 
 import { api } from "../../utils/api";
-import { useNavigate } from "react-router-dom";
+
+Yup.setLocale(ptForm);
 
 export const Register = () => {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [role, setRole] = useState("");
   const navigate = useNavigate();
   const toast = useToast();
 
-  const handleRegister = () => {
-    setLoading(true);
-    api
-      .post("/auth/register", { username, password, role })
-      .then(() => {
-        setLoading(false);
-        toast({
-          title: "Usuário Registrado.",
-          description: "Faça login para continuar.",
-          status: "success",
-          duration: 5000,
-          isClosable: true,
+  const formSchema = Yup.object().shape({
+    username: Yup.string().required().min(3),
+    password: Yup.string().required().min(8),
+    role: Yup.string().required(),
+  });
+  const { handleSubmit, errors, touched, handleChange, values } = useFormik({
+    initialValues: { username: "", password: "", role: "" },
+    validationSchema: formSchema,
+    onSubmit: async (values) => {
+      setLoading(true);
+      api
+        .post("/auth/register", {
+          username: values.username,
+          password: values.password,
+          role: values.role,
+        })
+        .then(() => {
+          setLoading(false);
+          toast({
+            title: "Usuário Registrado.",
+            description: "Faça login para continuar.",
+            status: "success",
+            duration: 5000,
+            isClosable: true,
+          });
+          navigate("/");
+        })
+        .catch((error: AxiosError) => {
+          setLoading(false);
+          toast({
+            title: "Erro",
+            description: error.message,
+            status: "error",
+            duration: 5000,
+            isClosable: true,
+          });
         });
-        navigate("/");
-      })
-      .catch((error: AxiosError) => {
-        setLoading(false);
-        toast({
-          title: "Erro",
-          description: error.message,
-          status: "error",
-          duration: 5000,
-          isClosable: true,
-        });
-      });
-  };
-
-  const handleUsername = (value: string) => {
-    setUsername(value);
-  };
-
-  const handlePassword = (value: string) => {
-    setPassword(value);
-  };
-
-  const handleRole = (value: string) => {
-    setRole(value);
-  };
+    },
+  });
 
   return (
     <Flex
@@ -71,42 +79,108 @@ export const Register = () => {
     >
       <Flex direction="column" background="gray.300" p={12} rounded={6}>
         <Heading mb={6}>Registrar</Heading>
-        <Stack spacing={5}>
-          <Input
-            placeholder="email@dominio.com"
-            variant="filled"
-            type="email"
-            value={username}
-            onChange={(e: any) => handleUsername(e.target.value)}
-          />
-          <Input
-            placeholder="********"
-            variant="filled"
-            type="password"
-            onChange={(e: any) => handlePassword(e.target.value)}
-          />
-          <Select
-            placeholder="Select a role"
-            variant="filled"
-            value={role}
-            onChange={(e: any) => handleRole(e.target.value)}
-          >
-            <option value="MASTER">Master</option>
-            <option value="DEVELOPER">Developer</option>
-            <option value="TESTER">Tester</option>
-          </Select>
-          <Center pt={5}>
-            <Button
-              isLoading={loading}
-              loadingText="Aguarde..."
-              width="100%"
-              colorScheme="teal"
-              onClick={handleRegister}
+        <form noValidate onSubmit={handleSubmit}>
+          <Stack spacing={5}>
+            <FormControl
+              isRequired
+              isInvalid={touched.username && Boolean(errors.username)}
             >
-              Registrar
-            </Button>
-          </Center>
-        </Stack>
+              <FormLabel
+                htmlFor="username"
+                ms="4px"
+                fontSize="sm"
+                fontWeight="normal"
+              >
+                Nome de Usuário
+              </FormLabel>
+              <Input
+                id="username"
+                placeholder="fulano"
+                variant="filled"
+                type="text"
+                value={values.username}
+                onChange={handleChange}
+              />
+              <FormErrorMessage>
+                <Flex>
+                  <FormErrorIcon />
+                  <Text>{touched.username && errors.username}</Text>
+                </Flex>
+              </FormErrorMessage>
+            </FormControl>
+
+            <FormControl
+              isRequired
+              isInvalid={touched.password && Boolean(errors.password)}
+            >
+              <FormLabel
+                htmlFor="password"
+                ms="4px"
+                fontSize="sm"
+                fontWeight="normal"
+              >
+                Senha
+              </FormLabel>
+              <Input
+                id="password"
+                placeholder="********"
+                variant="filled"
+                type="password"
+                value={values.password}
+                onChange={handleChange}
+              />
+              <FormErrorMessage>
+                <Flex>
+                  <FormErrorIcon />
+                  <Text>{touched.password && errors.password}</Text>
+                </Flex>
+              </FormErrorMessage>
+            </FormControl>
+
+            <FormControl
+              isRequired
+              isInvalid={touched.role && Boolean(errors.role)}
+            >
+              <FormLabel
+                htmlFor="role"
+                ms="4px"
+                fontSize="sm"
+                fontWeight="normal"
+              >
+                Regra de Acesso
+              </FormLabel>
+              <Select
+                id="role"
+                placeholder="Select a role"
+                variant="filled"
+                value={values.role}
+                onChange={handleChange}
+              >
+                <option value="MASTER">Master</option>
+                <option value="DEVELOPER">Developer</option>
+                <option value="TESTER">Tester</option>
+              </Select>
+              <FormErrorMessage>
+                <Flex>
+                  <FormErrorIcon />
+                  <Text>{touched.role && errors.role}</Text>
+                </Flex>
+              </FormErrorMessage>
+            </FormControl>
+
+            <Center pt={5}>
+              <Button
+                isLoading={loading}
+                loadingText="Aguarde..."
+                width="100%"
+                colorScheme="teal"
+                type="submit"
+              >
+                Registrar
+              </Button>
+            </Center>
+          </Stack>
+        </form>
       </Flex>
     </Flex>
   );
