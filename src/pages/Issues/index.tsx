@@ -68,47 +68,52 @@ export const Issues = () => {
   };
 
   const deleteIssues = async (...ids: number[]) => {
-    try {
-      ids.map(async (id) => {
-        await deleteIssue(id);
-        const i = [...items];
-        const index = i.findIndex((value) => value.id === id);
-        i.splice(index, 1);
+    ids.map(async (id) => {
+      deleteIssue(id)
+        .then(() => {
+          const i = [...items];
+          const index = i.findIndex((value) => value.id === id);
+          i.splice(index, 1);
 
-        const result = new Array(Math.ceil(i.length / take))
-          .fill(i)
-          .map((_) => i.splice(0, take));
-        setPagination(result);
+          const result = new Array(Math.ceil(i.length / take))
+            .fill(i)
+            .map((_) => i.splice(0, take));
+          setPagination(result);
 
-        setTableValues(result[indexPage]);
-        return;
-      });
-      toast({
-        title: "Sucesso",
-        description: "As issues foram apagadas",
-        status: "success",
-        duration: 5000,
-        isClosable: true,
-      });
-    } catch (error) {
-      const e = handleError(error);
-      if (typeof e === "string") {
-        toast({
-          title: "Erro",
-          description: e,
-          status: "error",
-          duration: 5000,
-          isClosable: true,
+          setTableValues(result[indexPage]);
+        })
+        .catch((error) => {
+          const e = handleError(error);
+          if (typeof e === "string") {
+            toast({
+              title: "Erro",
+              description: e,
+              status: "error",
+              duration: 5000,
+              isClosable: true,
+            });
+          }
+        })
+        .finally(() => {
+          toast({
+            title: "Sucesso",
+            description: "As issues foram apagadas",
+            status: "success",
+            duration: 5000,
+            isClosable: true,
+          });
         });
-      }
-    }
+      return;
+    });
+    ids.forEach((id) => {});
+    setIdsChecked([]);
   };
 
   const create = async (values: IssueInput) => {
     try {
       const response = await createIssue(values);
       const i = [...items];
-      i.unshift(response);
+      i.push(response);
 
       const result = new Array(Math.ceil(i.length / take))
         .fill(i)

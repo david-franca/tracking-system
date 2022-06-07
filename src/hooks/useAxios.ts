@@ -8,13 +8,17 @@ export const useAxios = <Data = any, Error = any>(
   token: string,
   params?: Params
 ) => {
-  const { data, error } = useSWR<Data, Error>(url, async (url) => {
-    api.defaults.headers.common["x-access-token"] = token;
-    const response = await api.get(url, {
-      headers: { "x-access-token": token },
-      params,
-    });
-    return response.data;
-  });
+  const { data, error } = useSWR<Data, Error>(
+    url,
+    async (url) => {
+      api.defaults.headers.common["x-access-token"] = token;
+      const response = await api.get(url, {
+        headers: { "x-access-token": token },
+        params,
+      });
+      return response.data;
+    },
+    { refreshInterval: 3000 }
+  );
   return { data, error };
 };

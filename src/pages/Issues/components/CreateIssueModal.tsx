@@ -54,6 +54,7 @@ const CreateIssueModal = ({
       validationSchema: formSchema,
       onSubmit: async (values) => {
         await createIssue(values);
+        resetForm();
         onClose();
       },
     });
