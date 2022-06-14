@@ -1,3 +1,4 @@
+import { useFormik } from "formik";
 import * as Yup from "yup";
 import { ptForm } from "yup-locale-pt";
 
@@ -17,9 +18,8 @@ import {
   Stack,
 } from "@chakra-ui/react";
 
-import { Issue, Priority } from "../../../@types";
-import { useFormik } from "formik";
-import { IssueInput, useAuth } from "../../../hooks/useAuth";
+import { IssueInput, Priority } from "../../../@types";
+import { useAppSelector } from "../../../hooks/useStore";
 
 Yup.setLocale(ptForm);
 
@@ -40,7 +40,7 @@ const CreateIssueModal = ({
     description: Yup.string().required().min(2).max(200),
   });
 
-  const { payload } = useAuth();
+  const { user: payload } = useAppSelector((state) => state.auth);
 
   const { handleSubmit, values, handleChange, touched, errors, resetForm } =
     useFormik({
@@ -49,7 +49,7 @@ const CreateIssueModal = ({
         version: "",
         description: "",
         priority: Priority.NORMAL,
-        autor: payload.username,
+        autor: payload?.username ?? "",
       },
       validationSchema: formSchema,
       onSubmit: async (values) => {

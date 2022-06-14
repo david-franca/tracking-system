@@ -5,7 +5,7 @@ import { Box, Checkbox, Tbody, Text, Th, Tooltip, Tr } from "@chakra-ui/react";
 import { Issue } from "../../../@types";
 import ActionsButtons from "./ActionsButtons";
 import BadgesColored from "./BadgesColored";
-import { useAuth } from "../../../hooks/useAuth";
+import { useAppSelector } from "../../../hooks/useStore";
 
 interface TableBodyProps {
   tableValues: Issue[];
@@ -20,13 +20,13 @@ const TableBody = ({
   handleChecked,
   deleteIssue,
 }: TableBodyProps) => {
-  const { payload } = useAuth();
+  const { user: payload } = useAppSelector((state) => state.auth);
   return (
     <Tbody>
       {tableValues
         ? tableValues.map((issue: Issue) => (
             <Tr key={issue.id}>
-              <Th hidden={payload.role !== "MASTER"}>
+              <Th hidden={payload?.role !== "MASTER"}>
                 <Checkbox
                   value={issue.id}
                   isChecked={idsChecked.includes(issue.id)}

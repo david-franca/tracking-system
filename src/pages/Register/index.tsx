@@ -21,13 +21,15 @@ import {
   useToast,
 } from "@chakra-ui/react";
 
-import { api } from "../../utils/api";
+import { useAppDispatch } from "../../hooks/useStore";
+import { register } from "../../redux/features/auth";
 
 Yup.setLocale(ptForm);
 
 export const Register = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
   const toast = useToast();
 
   const formSchema = Yup.object().shape({
@@ -40,12 +42,8 @@ export const Register = () => {
     validationSchema: formSchema,
     onSubmit: async (values) => {
       setLoading(true);
-      api
-        .post("/auth/register", {
-          username: values.username,
-          password: values.password,
-          role: values.role,
-        })
+      dispatch(register(values))
+        .unwrap()
         .then(() => {
           setLoading(false);
           toast({

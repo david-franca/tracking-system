@@ -1,25 +1,21 @@
 import React from "react";
-import { CookiesProvider } from "react-cookie";
 import ReactDOM from "react-dom/client";
+import { Provider } from "react-redux";
 import { BrowserRouter as Router } from "react-router-dom";
 
 import { ChakraProvider } from "@chakra-ui/react";
-import { CssBaseline } from "@mui/material";
 
 import App from "./App";
-import { AuthProvider } from "./hooks/useAuth";
+import { store } from "./redux/store";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <CssBaseline />
-    <ChakraProvider>
-      <CookiesProvider>
+    <Provider store={store}>
+      <ChakraProvider>
         <Router>
-          <AuthProvider>
-            <App />
-          </AuthProvider>
+          <App />
         </Router>
-      </CookiesProvider>
-    </ChakraProvider>
+      </ChakraProvider>
+    </Provider>
   </React.StrictMode>
 );

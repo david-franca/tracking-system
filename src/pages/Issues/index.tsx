@@ -1,8 +1,8 @@
 import "react-datepicker/dist/react-datepicker.css";
 
 import { AxiosError } from "axios";
-import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Navigate } from "react-router-dom";
 
 import { TriangleDownIcon, TriangleUpIcon, UpDownIcon } from "@chakra-ui/icons";
 import {
@@ -16,10 +16,12 @@ import {
   useToast,
 } from "@chakra-ui/react";
 
-import { Issue } from "../../@types";
-import { IssueInput, useAuth } from "../../hooks/useAuth";
+import { Issue, IssueInput } from "../../@types";
 import { useAxios } from "../../hooks/useAxios";
 import { useSortableData } from "../../hooks/useSortableData";
+import { useAppDispatch, useAppSelector } from "../../hooks/useStore";
+import { logout } from "../../redux/features/auth";
+import IssuesService from "../../services/issues.service";
 import { handleError } from "../../utils/handleError";
 import ActiveButton from "./components/ActiveButton";
 import CreateIssueModal from "./components/CreateIssueModal";
@@ -30,7 +32,6 @@ import TablePagination from "./components/TablePagination";
 import TextFilter from "./components/TextFilter";
 
 export const Issues = () => {
-  const { signed, logout, payload, deleteIssue, createIssue } = useAuth();
   const [take, setTake] = useState(10);
   const [tableValues, setTableValues] = useState<Issue[]>([]);
   const [pagination, setPagination] = useState<Issue[][]>([]);
@@ -40,8 +41,16 @@ export const Issues = () => {
   const [filterValue, setFilterValue] = useState("");
   const [filterKey, setFilterKey] = useState("");
   const toast = useToast();
+  const { user: payload } = useAppSelector((state) => state.auth);
+  const dispatch = useAppDispatch();
 
-  const navigate = useNavigate();
+  if (!payload) {
+    return <Navigate to="/" replace />;
+  }
+
+  const logOut = useCallback(() => {
+    dispatch(logout);
+  }, [dispatch]);
 
   const { data: issues } = useAxios<Issue[], AxiosError>(
     "issues",
@@ -69,7 +78,7 @@ export const Issues = () => {
 
   const deleteIssues = async (...ids: number[]) => {
     ids.map(async (id) => {
-      deleteIssue(id)
+      IssuesService.deleteIssue(id)
         .then(() => {
           const i = [...items];
           const index = i.findIndex((value) => value.id === id);
@@ -111,7 +120,7 @@ export const Issues = () => {
 
   const create = async (values: IssueInput) => {
     try {
-      const response = await createIssue(values);
+      const response = await IssuesService.createIssue(values);
       const i = [...items];
       i.push(response);
 
@@ -191,12 +200,6 @@ export const Issues = () => {
     }
   }, [take, items, indexPage, filterValue, filterKey]);
 
-  useEffect(() => {
-    if (!signed) {
-      navigate("/");
-    }
-  }, [signed]);
-
   const columns = useMemo(
     () => [
       { label: "ID", accessor: "id", Filter: TextFilter },
@@ -227,7 +230,7 @@ export const Issues = () => {
                 Deletar Issues
               </Button>
             ) : null}
-            <ActiveButton createIssue={onOpen} logout={logout} />
+            <ActiveButton createIssue={onOpen} logout={logOut} />
           </Box>
         </Flex>
         <TableContainer width="90vw" overflowY="auto">

@@ -26,8 +26,9 @@ import {
   useToast,
 } from "@chakra-ui/react";
 
-import { Issue, Priority, Status } from "../../../@types";
-import { IssueInput, useAuth } from "../../../hooks/useAuth";
+import { Issue, IssueInput, Priority, Status } from "../../../@types";
+import { useAppSelector } from "../../../hooks/useStore";
+import IssuesService from "../../../services/issues.service";
 import { handleError } from "../../../utils/handleError";
 
 type IssueEdit = Omit<Issue, "id" | "createdAt" | "userId" | "autor">;
@@ -44,7 +45,7 @@ const Form = ({ firstFieldRef, onCancel, issue, onSave }: FormProps) => {
   const [priorityValue, setPriorityValue] = useState<string>(issue.priority);
   const [statusValue, setStatusValue] = useState<string>(issue.status);
   const [loading, setLoading] = useState(false);
-  const { payload } = useAuth();
+  const { user: payload } = useAppSelector((state) => state.auth);
 
   const formik = useFormik({
     initialValues: {
@@ -119,7 +120,7 @@ const Form = ({ firstFieldRef, onCancel, issue, onSave }: FormProps) => {
 
         <FormControl
           hidden={
-            issue.id !== payload.id &&
+            issue.id !== payload?.id &&
             (issue.status === "APROVADO" || issue.status === "REPROVADO")
           }
         >
@@ -129,12 +130,12 @@ const Form = ({ firstFieldRef, onCancel, issue, onSave }: FormProps) => {
               {Object.values(Status).map((status) => (
                 <Radio
                   hidden={
-                    issue.userId !== payload.id &&
+                    issue.userId !== payload?.id &&
                     (status === "APROVADO" || status === "REPROVADO")
                   }
                   isDisabled={
-                    issue.userId === payload.id &&
-                    (payload.role === "MASTER" || payload.role === "TESTER")
+                    issue.userId === payload?.id &&
+                    (payload?.role === "MASTER" || payload?.role === "TESTER")
                       ? false
                       : ["APROVADO", "REPROVADO"].includes(status)
                       ? true
@@ -173,7 +174,7 @@ interface ActionsButtonsProps {
 }
 
 const ActionsButtons = ({ issue, deleteIssue }: ActionsButtonsProps) => {
-  const { updateIssue, payload } = useAuth();
+  const { user: payload } = useAppSelector((state) => state.auth);
   const { onOpen, onClose, isOpen } = useDisclosure();
   const [loading, setLoading] = useState(false);
   const firstFieldRef = useRef(null);
@@ -204,7 +205,7 @@ const ActionsButtons = ({ issue, deleteIssue }: ActionsButtonsProps) => {
               firstFieldRef={firstFieldRef}
               onCancel={onClose}
               issue={issue}
-              onSave={updateIssue}
+              onSave={IssuesService.updateIssue}
             />
           </FocusLock>
         </PopoverContent>
@@ -214,7 +215,7 @@ const ActionsButtons = ({ issue, deleteIssue }: ActionsButtonsProps) => {
           <>
             <PopoverTrigger>
               <IconButton
-                isDisabled={payload.role !== "MASTER"}
+                isDisabled={payload?.role !== "MASTER"}
                 colorScheme="red"
                 aria-label="Delete issue"
                 icon={<DeleteIcon />}
@@ -242,7 +243,7 @@ const ActionsButtons = ({ issue, deleteIssue }: ActionsButtonsProps) => {
                   pb={4}
                 >
                   <Button
-                    isDisabled={payload.role !== "MASTER"}
+                    isDisabled={payload?.role !== "MASTER"}
                     isLoading={loading}
                     loadingText="Aguarde..."
                     colorScheme="red"

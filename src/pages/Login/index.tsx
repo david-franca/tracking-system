@@ -1,6 +1,6 @@
 import { useFormik } from "formik";
 import { useState } from "react";
-import { Link as LinkRouter } from "react-router-dom";
+import { Link as LinkRouter, Navigate, useNavigate } from "react-router-dom";
 import * as Yup from "yup";
 import { ptForm } from "yup-locale-pt";
 
@@ -20,7 +20,9 @@ import {
   useToast,
 } from "@chakra-ui/react";
 
-import { useAuth } from "../../hooks/useAuth";
+import { useAppDispatch, useAppSelector } from "../../hooks/useStore";
+import { login } from "../../redux/features/auth";
+import { store } from "../../redux/store";
 import { handleError } from "../../utils/handleError";
 
 Yup.setLocale(ptForm);
@@ -28,7 +30,9 @@ Yup.setLocale(ptForm);
 export const Login = () => {
   const [loading, setLoading] = useState(false);
   const toast = useToast();
-  const { login } = useAuth();
+  const { isLoggedIn } = useAppSelector((state) => state.auth);
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
 
   const formSchema = Yup.object().shape({
     username: Yup.string().required().min(3),
@@ -40,33 +44,50 @@ export const Login = () => {
     onSubmit: async (values) => {
       console.log(values);
       setLoading(true);
-      try {
-        await login(values.username, values.password);
-      } catch (error) {
-        setLoading(false);
-        const e = handleError(error);
-        if (typeof e === "string") {
+      dispatch(login({ ...values }))
+        .unwrap()
+        .then(() => {
+          setLoading(false);
           toast({
-            title: "Erro",
-            description: e,
-            status: "error",
+            title: "Login efetuado com sucesso.",
+            description: "Redirecionando",
+            status: "success",
             duration: 5000,
             isClosable: true,
           });
-        } else {
-          e?.forEach((err) => {
+          navigate("/issues");
+        })
+        .catch((error) => {
+          setLoading(false);
+          const e = handleError(error);
+          if (typeof e === "string") {
             toast({
               title: "Erro",
-              description: err,
+              description: e,
               status: "error",
               duration: 5000,
               isClosable: true,
             });
-          });
-        }
-      }
+          } else {
+            e?.forEach((err) => {
+              toast({
+                title: "Erro",
+                description: err,
+                status: "error",
+                duration: 5000,
+                isClosable: true,
+              });
+            });
+          }
+        });
+      try {
+      } catch (error) {}
     },
   });
+
+  if (isLoggedIn) {
+    return <Navigate to="/issues" replace />;
+  }
 
   return (
     <Flex

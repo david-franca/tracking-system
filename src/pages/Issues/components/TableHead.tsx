@@ -10,8 +10,8 @@ import {
 } from "@chakra-ui/react";
 
 import { Issue } from "../../../@types";
-import { useAuth } from "../../../hooks/useAuth";
-import TextFilter, { TextFilterProps } from "./TextFilter";
+import { useAppSelector } from "../../../hooks/useStore";
+import { TextFilterProps } from "./TextFilter";
 
 interface ColumnsProps {
   label: string;
@@ -38,11 +38,11 @@ const TableHead = ({
   handleFilterValue,
   handleFilterKey,
 }: TableHeadProps) => {
-  const { payload } = useAuth();
+  const { user: payload } = useAppSelector((state) => state.auth);
   return (
     <Thead>
       <Tr>
-        <Th hidden={payload.role !== "MASTER"}></Th>
+        <Th hidden={payload?.role !== "MASTER"}></Th>
         {columns.map(({ label, accessor, Filter }) => {
           return (
             <Th key={accessor}>

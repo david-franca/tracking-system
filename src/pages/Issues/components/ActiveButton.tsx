@@ -7,7 +7,8 @@ import {
   MenuList,
   Portal,
 } from "@chakra-ui/react";
-import { useAuth } from "../../../hooks/useAuth";
+
+import { useAppSelector } from "../../../hooks/useStore";
 
 interface ActiveButtonProps {
   logout: () => void;
@@ -15,7 +16,7 @@ interface ActiveButtonProps {
 }
 
 const ActiveButton = ({ logout, createIssue }: ActiveButtonProps) => {
-  const { payload } = useAuth();
+  const { user: payload } = useAppSelector((state) => state.auth);
   return (
     <Menu>
       <MenuButton
@@ -25,7 +26,10 @@ const ActiveButton = ({ logout, createIssue }: ActiveButtonProps) => {
       />
       <Portal>
         <MenuList>
-          <MenuItem hidden={payload.role === "DEVELOPER"} onClick={createIssue}>
+          <MenuItem
+            hidden={payload?.role === "DEVELOPER"}
+            onClick={createIssue}
+          >
             Criar Issue
           </MenuItem>
           <MenuItem color="red" onClick={logout}>

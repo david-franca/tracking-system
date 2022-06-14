@@ -77,3 +77,13 @@ export interface Params {
   where?: IssueWhereInput;
   orderBy?: IssueOrderByWithRelationInput;
 }
+
+export interface IssueInput {
+  version: string;
+  issue: string;
+  autor: string;
+  priority: Priority;
+  description: string;
+}
+
+export type IssueInputUpdate = Partial<IssueInput>;
