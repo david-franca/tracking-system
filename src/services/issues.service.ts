@@ -1,5 +1,4 @@
-import { Issue, User } from "../@types";
-import { IssueInput } from "../hooks/useAuth";
+import { Issue, IssueInput, User } from "../@types";
 import { api } from "../utils/api";
 
 type IssueInputUpdate = Partial<IssueInput>;

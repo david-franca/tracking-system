@@ -1,10 +1,9 @@
 import { AxiosError } from "axios";
 
-import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
 import { User } from "../../@types";
 import AuthService from "../../services/auth.service";
-import { api } from "../../utils/api";
 
 const userJWT = localStorage.getItem("userJWT");
 
